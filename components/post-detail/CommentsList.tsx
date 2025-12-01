@@ -1,7 +1,7 @@
 // components/post-detail/CommentsList.tsx
 'use client';
 
-import { useTransition, useState } from 'react';
+import { useTransition, useState, useEffect } from 'react';
 import type { UnifiedComment } from '@/lib/types';
 import {
   updateCommentAction,
@@ -19,6 +19,7 @@ type Props = {
   comments: CommentWithPerms[];
   onOptimisticUpdate(comment: CommentWithPerms): void;
   onOptimisticDelete(id: number): void;
+  currentUserId: number | null;
 };
 
 export function CommentsList({
@@ -26,6 +27,7 @@ export function CommentsList({
   comments,
   onOptimisticUpdate,
   onOptimisticDelete,
+  currentUserId,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -36,6 +38,7 @@ export function CommentsList({
           comment={c}
           onOptimisticUpdate={onOptimisticUpdate}
           onOptimisticDelete={onOptimisticDelete}
+          currentUserId={currentUserId}
         />
       ))}
     </div>
@@ -47,6 +50,7 @@ type ItemProps = {
   comment: CommentWithPerms;
   onOptimisticUpdate(comment: CommentWithPerms): void;
   onOptimisticDelete(id: number): void;
+  currentUserId: number | null;
 };
 
 function CommentItem({
@@ -54,6 +58,7 @@ function CommentItem({
   comment,
   onOptimisticUpdate,
   onOptimisticDelete,
+  currentUserId,
 }: ItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(comment.body);
@@ -62,9 +67,38 @@ function CommentItem({
   const [isPendingEdit, startEditTransition] = useTransition();
   const [isPendingLike, startLikeTransition] = useTransition();
 
+  const initiallyLikedByMe = (() => {
+    if (currentUserId == null) return false;
+
+    const likedBy = (comment as any).likedBy as unknown;
+
+    if (!Array.isArray(likedBy)) return false;
+
+    // normalize to numbers, in case DB gives strings
+    const likedByNumbers = likedBy.map((v) => Number(v));
+
+    return likedByNumbers.includes(currentUserId);
+  })();
+
   // local like UI state
-  const [likesCount, setLikesCount] = useState(comment.likes);
-  const [likedByMe, setLikedByMe] = useState(false);
+  const [likesCount, setLikesCount] = useState(() => comment.likes);
+  const [likedByMe, setLikedByMe] = useState(() => initiallyLikedByMe);
+
+  useEffect(() => {
+    setLikesCount(comment.likes);
+
+    const likedBy = (comment as any).likedBy as unknown;
+    if (
+      currentUserId != null &&
+      Array.isArray(likedBy) &&
+      likedBy.map((v) => Number(v)).includes(currentUserId)
+    ) {
+      setLikedByMe(true);
+    } else {
+      setLikedByMe(false);
+    }
+  }, [comment.likes, (comment as any).likedBy, currentUserId]);
+
 
   const authorName =
     'user' in comment && comment.user
@@ -135,8 +169,7 @@ function CommentItem({
         setLikesCount(res.likes);
       } catch (err) {
         const msg =
-          err instanceof Error &&
-          /not authenticated/i.test(err.message)
+          err instanceof Error
             ? 'Log in to add a reaction.'
             : 'Could not update reaction.';
         setError(msg);
@@ -196,19 +229,15 @@ function CommentItem({
           type="button"
           disabled={!canLike || isPendingLike}
           onClick={handleToggleLike}
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border cursor-pointer select-none ${
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border select-none ${
             !canLike
               ? 'opacity-40 cursor-default'
               : isPendingLike
               ? 'opacity-70'
-              : 'hover:bg-pink-50 dark:hover:bg-pink-900 cursor-pointer'
+              : 'cursor-pointer active:bg-pink-50 active:dark:bg-pink-900 sm:hover:bg-pink-50 sm:dark:hover:bg-pink-900'
           }`}
         >
-          <span
-            className={
-              likedByMe ? 'text-pink-600' : 'text-slate-400'
-            }
-          >
+          <span className={likedByMe ? 'text-pink-600' : 'text-slate-400'}>
             {likedByMe ? '❤️' : '🤍'}
           </span>
           <span>{likesCount}</span>

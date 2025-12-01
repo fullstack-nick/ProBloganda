@@ -55,6 +55,7 @@ export async function createCommentAction(
     postId: input.postId,
     body,
     likes: 0,
+    likedBy: [],
     userId: dummyUserId,
     userFullName: author.fullName,
   });
@@ -68,6 +69,7 @@ export async function createCommentAction(
     postId: doc.postId,
     body: doc.body,
     likes: doc.likes,
+    likedBy: doc.likedBy ?? [],
     userId: doc.userId,
     userFullName: doc.userFullName,
     isCustom: true,
@@ -116,6 +118,7 @@ export async function updateCommentAction(
     postId: saved.postId,
     body: saved.body,
     likes: saved.likes,
+    likedBy: saved.likedBy ?? [],
     userId: saved.userId,
     userFullName: saved.userFullName,
     isCustom: true,

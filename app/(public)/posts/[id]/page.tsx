@@ -84,6 +84,7 @@ export default async function PostPage({ params }: Props) {
       canEditPost={canEditPost}
       canDeletePost={canDeletePost}
       canComment={canComment}
+      currentUserId={currentDummyUserId}
     />
   );
 }

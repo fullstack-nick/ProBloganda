@@ -43,8 +43,7 @@ export function PostReactions({
         setUserReaction(res.userReaction);
       } catch (err) {
         const msg =
-          err instanceof Error &&
-          /not authenticated/i.test(err.message)
+          err instanceof Error
             ? 'Log in to add a reaction.'
             : 'Could not update reaction.';
         setError(msg);
@@ -64,6 +63,7 @@ export function PostReactions({
           disabled={!isCustom || isPending}
           active={userReaction === 'like'}
           stopNavigation={stopNavigation}
+          isCustom={isCustom}
           onClick={() => handleReact('like')}
         />
         <ReactionButton
@@ -72,6 +72,7 @@ export function PostReactions({
           disabled={!isCustom || isPending}
           active={userReaction === 'dislike'}
           stopNavigation={stopNavigation}
+          isCustom={isCustom}
           onClick={() => handleReact('dislike')}
         />
       </div>
@@ -91,6 +92,7 @@ type ReactionButtonProps = {
   disabled?: boolean;
   active?: boolean;
   stopNavigation?: boolean;
+  isCustom: boolean;
   onClick(): void;
 };
 
@@ -100,6 +102,7 @@ function ReactionButton({
   disabled,
   active,
   stopNavigation,
+  isCustom,
   onClick,
 }: ReactionButtonProps) {
   const label = type === 'like' ? '👍' : '👎';
@@ -116,13 +119,17 @@ function ReactionButton({
   }
 
   const base =
-    'bg-[#fafcff] dark:bg-slate-800 inline-flex items-center px-2 py-0.5 rounded-full border text-xs cursor-pointer select-none ';
+    'bg-[#fafcff] dark:bg-slate-800 inline-flex items-center px-2 py-0.5 rounded-full border text-xs select-none ';
 
   const stateClass = stopNavigation
     ? // List view: bright, decorative, click goes to parent <Link>
-      'cursor-pointer border-slate-900 text-slate-900'
+      (isCustom
+        ? 'cursor-pointer border-slate-900 text-slate-900'
+        : 'border-slate-900 text-slate-900')
     : disabled
     ? 'opacity-60 cursor-default'
+    : isCustom
+    ? 'cursor-pointer hover:scale-105 active:scale-95 transition'
     : 'hover:scale-105 active:scale-95 transition';
 
   const activeClass =

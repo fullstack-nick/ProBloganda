@@ -9,11 +9,20 @@ const API_POST_COUNT = 251;
 const API_COMMENTS_MAX_ID_GLOBAL = 340;
 
 function toUnifiedCustom(doc: any): CustomComment {
+  const rawLikedBy: Array<number | string> = Array.isArray(doc.likedBy)
+  ? (doc.likedBy as Array<number | string>)
+  : [];
+
+  const likedBy: number[] = rawLikedBy
+    .map((v) => Number(v))
+    .filter((v) => Number.isFinite(v));
+
   return {
     id: doc.id,
     body: doc.body,
     postId: doc.postId,
     likes: typeof doc.likes === 'number' ? doc.likes : 0,
+    likedBy,
     userId: doc.userId,
     userFullName: doc.userFullName,
     isCustom: true,
@@ -77,6 +86,8 @@ export async function createCustomComment(params: {
     id,
     postId,
     body,
+    likes: 0,
+    likedBy: [],
     userId,
     userFullName,
   });

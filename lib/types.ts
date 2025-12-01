@@ -51,6 +51,7 @@ export type CustomComment = {
   body: string;
   postId: number;
   likes: number;
+  likedBy: number[];
   userId: number;        // DummyJSON user id
   userFullName: string;  // denormalized for quick display
   isCustom: true;

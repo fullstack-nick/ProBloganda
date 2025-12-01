@@ -1,7 +1,7 @@
 // components/post-detail/CommentSection.tsx
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import type { UnifiedComment } from '@/lib/types';
 import { createCommentAction } from '@/app/actions/comments';
 import { CommentsList } from './CommentsList';
@@ -15,7 +15,8 @@ type Props = {
   postId: number;
   initialComments: CommentWithPerms[];
   canComment: boolean;
-  onCommentsChange?: (count: number) => void; // 🔹 NEW
+  onCommentsChange?: (count: number) => void;
+  currentUserId: number | null;
 };
 
 export function CommentSection({
@@ -23,12 +24,20 @@ export function CommentSection({
   initialComments,
   canComment,
   onCommentsChange,
+  currentUserId,
 }: Props) {
   const [comments, setComments] =
     useState<CommentWithPerms[]>(initialComments);
   const [body, setBody] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // ✅ Notify parent *after* comments change, not inside setState
+  useEffect(() => {
+    if (onCommentsChange) {
+      onCommentsChange(comments.length);
+    }
+  }, [comments.length, onCommentsChange]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +56,7 @@ export function CommentSection({
       postId,
       body: trimmed,
       likes: 0,
+      likedBy: [],
       userId: -1,
       userFullName: 'You',
       isCustom: true,
@@ -56,11 +66,7 @@ export function CommentSection({
 
     // 1) Optimistic add
     startTransition(() => {
-      setComments((prev) => {
-        const next = [...prev, optimistic];
-        onCommentsChange?.(next.length);  // 🔹 inform parent
-        return next;
-      });
+      setComments((prev) => [...prev, optimistic]);  // ✅ no parent update here
     });
 
     try {
@@ -70,7 +76,7 @@ export function CommentSection({
         body: trimmed,
       });
 
-      // 3) Replace temp comment with real one (count unchanged)
+      // 3) Replace temp comment with real one
       startTransition(() => {
         setComments((prev) =>
           prev.map((c) =>
@@ -91,11 +97,9 @@ export function CommentSection({
 
       // 4) Remove optimistic comment on error
       startTransition(() => {
-        setComments((prev) => {
-          const next = prev.filter((c) => c.id !== tempId);
-          onCommentsChange?.(next.length); // 🔹 inform parent
-          return next;
-        });
+        setComments((prev) =>
+          prev.filter((c) => c.id !== tempId),
+        );
       });
     }
   }
@@ -107,16 +111,13 @@ export function CommentSection({
         c.id === comment.id ? comment : c,
       ),
     );
-    // no count change here
   }
 
   // Called by CommentsList for delete
   function handleOptimisticDelete(id: number) {
-    setComments((prev) => {
-      const next = prev.filter((c) => c.id !== id);
-      onCommentsChange?.(next.length);   // 🔹 inform parent
-      return next;
-    });
+    setComments((prev) =>
+      prev.filter((c) => c.id !== id),
+    ); // ✅ effect will notify parent
   }
 
   return (
@@ -126,6 +127,7 @@ export function CommentSection({
         comments={comments}
         onOptimisticUpdate={handleOptimisticUpdate}
         onOptimisticDelete={handleOptimisticDelete}
+        currentUserId={currentUserId}
       />
 
       {canComment ? (
