@@ -27,7 +27,7 @@ export async function Header({ initialTheme }: HeaderProps) {
     baseBtn + ' h-9 w-9 text-xs sm:text-sm p-0'; // profile icon only
 
   return (
-    <header className="border-b dark:border-b-[0.1px] dark:border-b-[#475569] bg-[#fafcff] dark:bg-slate-800 backdrop-blur sticky top-0 z-20">
+    <header className="border-b dark:border-b-[0.1px] dark:border-b-[#475569] bg-[#fafcff] dark:bg-slate-800 backdrop-blur sticky top-0 z-20 overflow-hidden">
       <div
         className="
           max-w-4xl mx-auto

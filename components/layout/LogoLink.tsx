@@ -25,7 +25,8 @@ export function LogoLink() {
         className="
           relative shrink-0
           h-5 w-20
-          md:h-10 md:w-40
+          md:h-2 md:w-8
+          md:-mt-5
           max-[360px]:h-3 max-[360px]:w-12
           transition-none
         "
@@ -33,7 +34,8 @@ export function LogoLink() {
         <Image
           src="/logo.png"
           alt="Pro Bloganda logo"
-          fill
+          width={1024}
+          height={1024}
           sizes="(max-width: 360px) 48px, (max-width: 768px) 80px, 160px"
           draggable={false}
           className="
