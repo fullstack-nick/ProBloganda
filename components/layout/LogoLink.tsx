@@ -24,10 +24,13 @@ export function LogoLink() {
       <div
         className="
           relative shrink-0
-          h-5 w-20
+          h-1.5 w-6
+          -mr-25
+          -mt-4
           md:h-2 md:w-8
           md:-mt-5
-          max-[360px]:h-3 max-[360px]:w-12
+          max-[360px]:h-1 max-[360px]:w-4
+          max-[360px]:-mb-1.5
           transition-none
         "
       >
