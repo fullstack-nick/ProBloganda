@@ -1,48 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type Theme = 'light' | 'dark';
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
+type ThemeToggleProps = {
+  initialTheme: Theme;
+};
 
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window === 'undefined') return;
-
-    const stored = window.localStorage.getItem('theme') as Theme | null;
-    const initial: Theme = stored ?? 'dark';
-
-    setTheme(initial);
-    document.documentElement.classList.toggle('dark', initial === 'dark');
-  }, []);
+export function ThemeToggle({ initialTheme }: ThemeToggleProps) {
+  const [theme, setTheme] = useState<Theme>(initialTheme);
 
   function toggleTheme() {
     setTheme(prev => {
       const next: Theme = prev === 'dark' ? 'light' : 'dark';
 
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem('theme', next);
-        document.documentElement.classList.toggle('dark', next === 'dark');
-      }
+      // flip the class on <html>
+      document.documentElement.classList.toggle('dark', next === 'dark');
+
+      // store preference in a cookie for the server
+      document.cookie = `theme=${next}; path=/; max-age=31536000`;
 
       return next;
     });
   }
 
-  if (!mounted) {
-    return (
-      <button
-        type="button"
-        className="inline-flex items-center justify-center h-9 px-3 rounded-full border text-xs sm:text-sm select-none cursor-pointer whitespace-nowrap"
-        aria-label="Toggle theme"
-      >
-        Theme
-      </button>
-    );
-  }
+  const isDark = theme === 'dark';
 
   return (
     <button
@@ -52,10 +35,10 @@ export function ThemeToggle() {
       aria-label="Toggle theme"
     >
       <span className="sm:hidden">
-        {theme === 'dark' ? '🌞' : '🌙'}
+        {isDark ? '🌞' : '🌙'}
       </span>
       <span className="hidden sm:inline">
-        {theme === 'dark' ? '🌞 Light' : '🌙 Dark'}
+        {isDark ? '🌞 Light' : '🌙 Dark'}
       </span>
     </button>
   );

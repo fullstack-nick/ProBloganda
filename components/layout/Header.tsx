@@ -7,7 +7,13 @@ import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { ThemeToggle } from './ThemeToggle';
 import { LogoLink } from './LogoLink';
 
-export async function Header() {
+type Theme = 'light' | 'dark';
+
+type HeaderProps = {
+  initialTheme: Theme;
+};
+
+export async function Header({ initialTheme }: HeaderProps) {
   const { isAuthenticated } = getKindeServerSession();
   const authed = await isAuthenticated();
 
@@ -75,7 +81,7 @@ export async function Header() {
             </LoginLink>
           )}
 
-          <ThemeToggle />
+          <ThemeToggle initialTheme={initialTheme} />
         </nav>
       </div>
     </header>
